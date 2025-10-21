@@ -4,7 +4,15 @@
 #include <pthread.h>
 
 struct job_queue {
-  int dummy;
+    pthread_mutex_t mutex;
+    pthread_cond_t  not_empty;
+    pthread_cond_t  not_full;
+    void          **buffer;
+    int             capacity;
+    int             count;
+    int             head;
+    int             tail;
+    int             destroyed;
 };
 
 // Initialise a job queue with the given capacity.  The queue starts out
