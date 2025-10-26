@@ -4,6 +4,8 @@
 
 #include "job_queue.h"
 
+// Initialize the job queue with the given capacity. Returns 0 on success, -1 on failure.
+
 int job_queue_init(struct job_queue *job_queue, int capacity) {
   if (capacity <= 0) {
     return -1; //capacity must be positive
@@ -36,6 +38,8 @@ int job_queue_init(struct job_queue *job_queue, int capacity) {
   return 0;
 }
 
+// Destroy the job queue, freeing resources. Blocks until all jobs are processed.
+
 int job_queue_destroy(struct job_queue *job_queue) {
   // Lock and mark the queue as destroyed
   assert(pthread_mutex_lock(&job_queue->mutex) == 0);
@@ -52,6 +56,8 @@ int job_queue_destroy(struct job_queue *job_queue) {
   free(job_queue->buffer);
   return 0;
 }
+
+// Push a new job onto the queue. Returns 0 on success, -1 if the queue is destroyed.
 
 int job_queue_push(struct job_queue *job_queue, void *data) {
   assert(pthread_mutex_lock(&job_queue->mutex) == 0);
@@ -83,6 +89,8 @@ int job_queue_push(struct job_queue *job_queue, void *data) {
     return 0;
 }
 
+// Pop a job from the queue. Returns 0 on success, -1 if the queue is destroyed and empty.
+
 int job_queue_pop(struct job_queue *job_queue, void **data) {
    assert(pthread_mutex_lock(&job_queue->mutex) == 0);
     // Queue is empty, wait for a job (unless destroyed)
@@ -92,7 +100,7 @@ int job_queue_pop(struct job_queue *job_queue, void **data) {
     // If destroyed *and* no jobs remain, return -1 to signal termination
     if (job_queue->destroyed && job_queue->count == 0) {
         pthread_mutex_unlock(&job_queue->mutex);
-        return -1;  // queue has been shut down:contentReference[oaicite:7]{index=7}
+        return -1;  // queue has been shut down
     }
     // Remove the job from the head of the queue
     assert(job_queue->count > 0);

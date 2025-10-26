@@ -19,6 +19,8 @@
 
 #include "job_queue.h"
 
+// ---------- Global shared state ----------
+
 pthread_mutex_t stdout_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static char const *g_needle = NULL;
@@ -48,6 +50,9 @@ int fauxgrep_file(char const *needle, char const *path) {
   fclose(f);
   return 0;
 }
+
+// ---------- Worker thread ----------
+
 void *worker(void *arg) {
     struct job_queue *jq = (struct job_queue *)arg;
     void *data;
@@ -58,6 +63,8 @@ void *worker(void *arg) {
     }
     return NULL;
 }
+
+// ---------- Main ----------
 
 int main(int argc, char * const *argv) {
   if (argc < 2) {
@@ -81,9 +88,9 @@ int main(int argc, char * const *argv) {
         paths = &argv[2];
     }
 
-    g_needle = needle;  // make the search string accessible to all threads
+    g_needle = needle;                      // make the search string accessible to all threads
     struct job_queue jq;
-    if (job_queue_init(&jq, 64) != 0) {             // initialize job queue with capacity 64
+    if (job_queue_init(&jq, 64) != 0) {     // initialize job queue with capacity 64
         err(1, "job_queue_init failed");
     }
 
@@ -109,7 +116,7 @@ int main(int argc, char * const *argv) {
     FTSENT *entry;
     while ((entry = fts_read(ftsp)) != NULL) {
         if (entry->fts_info == FTS_F) {  // regular file
-            // Duplicate the file path and push it onto the job queue:contentReference[oaicite:16]{index=16}
+            // Duplicate the file path and push it onto the job queue
             char *path_copy = strdup(entry->fts_path);
             if (path_copy == NULL) {
                 err(1, "out of memory duplicating path");
@@ -126,11 +133,11 @@ int main(int argc, char * const *argv) {
     }
     fts_close(ftsp);
 
-    // No more files to enqueue. Destroy the queue to signal workers no more jobs:contentReference[oaicite:17]{index=17}.
+    // No more files to enqueue. Destroy the queue to signal workers no more jobs will be added.
     job_queue_destroy(&jq);
     // At this point, the queue is empty and marked destroyed; waiting threads will break out.
 
-    // Join all worker threads to ensure they have finished processing:contentReference[oaicite:18]{index=18}.
+    // Join all worker threads to ensure they have finished processing.
     for (int i = 0; i < num_threads; i++) {
         if (pthread_join(threads[i], NULL) != 0) {
             err(1, "pthread_join() failed");

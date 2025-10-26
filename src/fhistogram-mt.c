@@ -14,7 +14,7 @@
 #include <err.h>
 
 #include "job_queue.h"
-#include "histogram.h"   // provides print_histogram(...) and move_lines(...)
+#include "histogram.h" 
 
 // ---------- Global shared state ----------
 
@@ -33,9 +33,9 @@ static const size_t PRINT_STEP = 100000;
 // Convenience: safe UI print of the current snapshot
 static void ui_print_locked(void) {
     pthread_mutex_lock(&stdout_mutex);
-    print_histogram(g_hist);  // prints 8 bars + footer
+    print_histogram(g_hist);    // prints 8 bars + footer
     fflush(stdout);
-    move_lines(9);                            // go back up to overwrite next time
+    move_lines(9);              // go back up to overwrite next time
     pthread_mutex_unlock(&stdout_mutex);
 }
 
